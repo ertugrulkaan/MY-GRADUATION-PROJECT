@@ -1,0 +1,81 @@
+#include <LiquidCrystal.h>
+LiquidCrystal lcd(7,8,9,10,11,12);
+float sample1=0;//for voltage
+float sample2=0;//for current
+float voltage=0.0;
+float val;//current callibration                                              
+float amps=0.0; //current
+float totamps=0.0;//total current
+float avgamps=0.0;//avarage current
+float amphr=0.0;// current for hour
+float watt=0.0;//power
+float energy=0.0;
+void setup() {
+lcd.begin(16,2);//columns,rows,size of display
+lcd.clear();//clear the screen
+Serial.begin(9600); // opens serial port, sets data rate to 9600 bps
+  
+}
+
+void loop() {
+lcd.setCursor(16,1);//set the cursor outside the display count
+lcd.print(" ");// print empty character
+delay(2000);
+
+for(int i=0;i<150;i++){//taking 150 samples from sensors with a inerval of 2sec and then avarage the samples daha collected
+sample1+=analogRead(A2); // read the voltage from the sensor
+sample2+=analogRead(A3); // read the current from the sensor
+delay(2); 
+}
+
+long milisec = millis(); // calculate time in milisec
+long time = milisec/1000; // concert time to sec
+
+sample1=sample1/150;
+sample2=sample2/150;
+
+//VOLTAGE CALCULATIONN
+                                                              
+voltage=(5*12*sample1/1024.0);
+
+// CURRENT CALCULATION
+
+val=5*sample2/1024.0;
+amps =val*4; //100mv/A from data sheet yeni hassesiyet 250mV/A
+totamps=totamps+amps; //total amps
+avgamps=totamps/time;//avarage amps
+amphr=(avgamps*time)/3600; //amphour
+watt=voltage*amps; //power=voltage*current
+energy=(watt*time)/(3600); // energy in wh
+
+
+
+// PRINT POWER AND ENERGY TO A LCD
+{
+lcd.setCursor(1,0);//set the cursor at 1st col and 1st row
+lcd.print(watt);
+lcd.print("W  ");
+lcd.print(voltage);
+lcd.print("V  ");
+lcd.setCursor(1,1);
+lcd.print(energy);
+lcd.print("W H  ");
+lcd.print(amps);
+lcd.print("A");
+
+
+Serial.print(watt);
+Serial.print("W  ");
+Serial.println();
+Serial.print(voltage);
+Serial.print("V  ");
+Serial.println();
+Serial.print(energy);
+Serial.print("W H  ");
+Serial.println();
+Serial.print(amps);
+Serial.print("A");
+
+}
+
+}
